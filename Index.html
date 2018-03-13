@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="description" content="Upload Lampiran">
+    <meta name="keywords" content="Upload Lampiran">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-deep_orange.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</head>
+
+<body class="mdl-layout">
+    <form class="mdl-layout mdl-layout__content" style="position: relative; margin-left: auto; margin-right: auto; text-align: center;"
+        action="#" id="uploaderForm">
+        <img id="desc" src="https://2.bp.blogspot.com/-1j_kRXMdZFU/V7_vlEX5yoI/AAAAAAAAATI/tNV50G3XU40J0YNoM2uEvis9RjMS9iWEQCLcB/s1600/progress.gif" style="position: relative; height: auto; width: 10%; margin: 10px 0 0 0;">
+        <div class="mdl-tooltip mdl-tooltip--large" data-mdl-for="desc">Mohon Upload Lampiran Data Pendukung Pernyataan Anda</div>
+        <div class="mdl-layout-spacer">
+            <br/>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" name="applicantName" id="applicantName">
+            <label class="mdl-textfield__label" for="applicantName">Nama</label>
+        </div>
+        <div class="mdl-layout-spacer">
+            <br/>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" name="applicantEmail" id="applicantEmail">
+            <label class="mdl-textfield__label" for="applicantEmail">Alamat Email</label>
+        </div>
+        <div class="mdl-layout-spacer">
+            <br/>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+            <input class="mdl-textfield__input" type="text" pattern="-?[0-9]*(\.[0-9]+)?" name="applicantNumber" id="applicantNumber">
+            <label class="mdl-textfield__label" for="applicantNumber">Phone Number...</label>
+            <span class="mdl-textfield__error">Input is not a number!</span>
+        </div>
+        <div class="mdl-layout-spacer">
+            <br/>
+        </div>
+        <input class="mdl-button mdl-js-button mdl-button--accent" type="file" name="filesToUpload" id="filesToUpload" multiple>
+        <div class="mdl-layout-spacer">
+            <br/>
+        </div>
+        <input class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" value="Submit" onclick="uploadFiles()">
+        <div class="mdl-layout-spacer">
+            <br/>
+        </div>
+        <span class="mdl-chip mdl-chip--contact">
+            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">?</span>
+            <span class="mdl-chip__text" id="output"></span>
+        </span>
+
+    </form>
+
+    <script>
+        var rootFolderId = 'XXXX';
+        var numUploads = {};
+        numUploads.done = 0;
+        numUploads.total = 0;
+        function uploadFiles() {
+            var allFiles = document.getElementById('filesToUpload').files;
+            var applicantName = document.getElementById('applicantName').value;
+            if (!applicantName) {
+                window.alert('Missing applicant name!');
+            }
+            var applicantEmail = document.getElementById('applicantEmail').value;
+            if (!applicantEmail) {
+                window.alert('Missing applicant email!');
+            }
+            var applicantNumber = document.getElementById('applicantNumber').value;
+            if (!applicantNumber) {
+                window.alert('Missing applicant number!');
+            }
+            var folderName = applicantName + ' ' + applicantEmail;
+            if (allFiles.length == 0) {
+                window.alert('No file selected!');
+            } else {
+                numUploads.total = allFiles.length;
+                google.script.run.withSuccessHandler(function (r) {
+                    for (var i = 0; i < allFiles.length; i++) {
+                        uploadFile(allFiles[i], r.folderId);
+                    }
+                }).createFolder(rootFolderId, folderName);
+            }
+        }
+/// Output jumlah Document yang sedang diupload ///
+        function uploadFile(file, folderId) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var content = reader.result;
+                document.getElementById('output').innerHTML = 'uploading '
+                    + file.name + '...';				
+                google.script.run.withSuccessHandler(onFileUploaded)
+                    .uploadFile(content, file.name, folderId);
+            }
+            reader.readAsDataURL(file);
+        }
+/// Output jumlah Document yang dapat diupload ///
+        function onFileUploaded(r) {
+            numUploads.done++;
+            document.getElementById('output').innerHTML = 'uploaded '
+                + r.fileName + ' (' + numUploads.done + '/'
+                + numUploads.total + ' files).';
+            if (numUploads.done == numUploads.total) {
+                document.getElementById('output').innerHTML = 'All of the '
+                    + numUploads.total + ' files are uploaded';
+                numUploads.done = 0;
+            }
+        }
+    </script>
+</body>
+
+</html>
